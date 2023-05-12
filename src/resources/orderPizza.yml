@@ -1,0 +1,55 @@
+Resources:
+  BotRuntimeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lexv2.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: LexRuntimeRolePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "polly:SynthesizeSpeech"
+                  - "comprehend:DetectSentiment"
+                Resource: "*"
+                
+  OrderPizzaBotVersion:
+    DependsOn: OrderPizzaTemplateBot
+    Type: AWS::Lex::BotVersion
+    Properties:
+      BotId: !Ref OrderPizzaTemplateBot
+      BotVersionLocaleSpecification:
+        - LocaleId: en_US
+          BotVersionLocaleDetails:
+            SourceBotVersion: DRAFT
+      Description: OrderPizza Version
+
+  FirstBotAlias:
+    DependsOn: OrderPizzaBotVersion
+    Type: AWS::Lex::BotAlias
+    Properties:
+      BotId: !Ref OrderPizzaTemplateBot
+      BotAliasName: "OrderPizzaVersion1Alias"
+      BotAliasLocaleSettings:
+        - LocaleId: en_US
+          BotAliasLocaleSetting:
+            Enabled: true
+            CodeHookSpecification: 
+              LambdaCodeHook:
+                CodeHookInterfaceVersion: "1.0"
+                LambdaArn: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:lexchatbot-dev-orderPizzaBot" # !GetAtt orderPizzaBot.Arn
+      BotVersion: !GetAtt OrderPizzaBotVersion.BotVersion
+      SentimentAnalysisSettings:
+        DetectSentiment: true
+
+  

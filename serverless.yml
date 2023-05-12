@@ -1,0 +1,34 @@
+service: lexchatbot
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: dev
+  region: us-east-1
+
+layers:
+  lexbotValidation:
+    path: lexbotValidation
+    name: ${self:provider.stage}-lex-bot-validation
+    description: This Layer use in orderPizaa Validation
+    compatibleRuntimes:
+      - nodejs12.x
+      - nodejs14.x
+
+functions:
+  orderPizzaBot:
+    handler: src/handlers/orderPizzaBot.handler
+    role: !GetAtt LambdaExecutionRole.Arn
+    layers: 
+      - {Ref: LexbotValidationLambdaLayer}
+
+package:
+  exclude:
+    - lexbotValidation/**
+
+resources:
+  - ${file(src/resources/Lex/orderPizzaTemplate.yml)}
+  - ${file(src/resources/orderPizza.yml)}
+  - ${file(src/resources/dynamoDB.yml)}
+  - ${file(src/resources/functionPermission.yml)}

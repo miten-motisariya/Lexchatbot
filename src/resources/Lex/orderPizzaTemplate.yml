@@ -1,0 +1,286 @@
+Resources:
+  OrderPizzaTemplateBot:
+    DependsOn: BotRuntimeRole
+    Type: AWS::Lex::Bot
+    Properties:
+      Name: "OrderPizza"
+      RoleArn: !GetAtt BotRuntimeRole.Arn
+      DataPrivacy:
+        ChildDirected: false
+      IdleSessionTTLInSeconds: 300
+      Description: "How to make a Order Pizza with chat bot"
+      AutoBuildBotLocales: false
+      BotLocales:
+        - LocaleId: "en_US"
+          Description: "Order Pizza with Chat bot Locale"
+          NluConfidenceThreshold: 0.40
+          VoiceSettings:
+            VoiceId: "Ivy"
+          SlotTypes:
+            - Name: "PizzaType"
+              Description: "Pizza Types"
+              SlotTypeValues:
+                - SampleValue:
+                    Value: Cheese
+                - SampleValue:
+                    Value: Veggie
+                - SampleValue:
+                    Value: Pepperoni
+                - SampleValue:
+                    Value: Margherita
+                - SampleValue:
+                    Value: Hawaiian
+              ValueSelectionSetting:
+                ResolutionStrategy: ORIGINAL_VALUE
+            - Name: "PizzaSize"
+              Description: "Pizza Sizes"
+              SlotTypeValues:
+                - SampleValue:
+                    Value: Slice
+                - SampleValue:
+                    Value: Small
+                - SampleValue:
+                    Value: Medium
+                - SampleValue:
+                    Value: Large
+              ValueSelectionSetting:
+                ResolutionStrategy: ORIGINAL_VALUE
+            - Name: "PizzaCrust"
+              Description: "Pizza Crust"
+              SlotTypeValues:
+                - SampleValue:
+                    Value: Thin
+                - SampleValue:
+                    Value: Thick
+              ValueSelectionSetting:
+                ResolutionStrategy: ORIGINAL_VALUE
+            - Name: "PizzaTopping"
+              Description: "Pizza Topping"
+              SlotTypeValues:
+                - SampleValue:
+                    Value: Pepperoni
+                - SampleValue:
+                    Value: Onion
+                - SampleValue:
+                    Value: Corns
+                - SampleValue:
+                    Value: Black Olives
+                - SampleValue:
+                    Value: Mushrooms
+                - SampleValue:
+                    Value: Jalapeno
+              ValueSelectionSetting:
+                ResolutionStrategy: ORIGINAL_VALUE
+          Intents:
+            - Name: "OrderPizza"
+              Description: "Intent to Order Pizaa With ChatBot"
+              SampleUtterances:
+                - Utterance: I want to order a pizza
+                - Utterance: Can I order a pizza?
+                - Utterance: Pizza please
+                - Utterance: Hello
+              SlotPriorities:
+                - Priority: 1
+                  SlotName: Name
+                - Priority: 2
+                  SlotName: City
+                - Priority: 3
+                  SlotName: PizzaType
+                - Priority: 4
+                  SlotName: PizzaSize
+                - Priority: 5
+                  SlotName: PizzaCrust
+                - Priority: 6
+                  SlotName: PizzaTopping
+                - Priority: 7
+                  SlotName: QtyPizza
+                - Priority: 8
+                  SlotName: PickUpTime
+              Slots:
+                - Name: Name
+                  Description: Your first name
+                  SlotTypeName: AMAZON.FirstName
+                  ValueElicitationSetting:
+                    SlotConstraint: "Required"
+                    PromptSpecification:
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Welcome!, May I know your name?"
+                      MaxRetries: 3
+                      AllowInterrupt: false
+                - Name: "City"
+                  Description: "Select the city"
+                  SlotTypeName: "AMAZON.City"
+                  ValueElicitationSetting:
+                    SlotConstraint: "Required"
+                    PromptSpecification:
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Please select the City?"
+                      MaxRetries: 3
+                      AllowInterrupt: false
+                - Name: "PizzaType"
+                  Description: "Types of Pizza"
+                  SlotTypeName: "PizzaType"
+                  ValueElicitationSetting:
+                    SlotConstraint: "Required"
+                    PromptSpecification:
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "Which type of pizza do you want to order?"
+                      MaxRetries: 3
+                      AllowInterrupt: false
+                - Name: "PizzaSize"
+                  Description: "Size of Pizza"
+                  SlotTypeName: "PizzaSize"
+                  ValueElicitationSetting:
+                    SlotConstraint: "Required"
+                    PromptSpecification:
+                      MessageGroupsList:
+                        - Message:
+                            ImageResponseCard:
+                              Title: "Please selct the Size of Pizza"
+                              Buttons:
+                                - Text: "Slice"
+                                  Value: "Slice"
+                                - Text: "Small"
+                                  Value: "Small"
+                                - Text: "Medium"
+                                  Value: "Medium"
+                                - Text: "Large"
+                                  Value: "Large"
+                      MaxRetries: 3
+                      AllowInterrupt: false
+                - Name: "PizzaCrust"
+                  Description: "Pizza Crust you prefer like thin or thick"
+                  SlotTypeName: "PizzaCrust"
+                  ValueElicitationSetting:
+                    SlotConstraint: "Required"
+                    PromptSpecification:
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What do you prefer pizza crust Thin or Thick?"
+                      MaxRetries: 3
+                      AllowInterrupt: false
+                    SlotCaptureSetting:
+                      CodeHook:
+                        EnableCodeHookInvocation: true
+                        InvocationLabel: PizzaCrustValidate
+                        IsActive: true
+                        PostCodeHookSpecification:
+                          SuccessNextStep:
+                            DialogAction:
+                              Type: ElicitSlot
+                              SlotToElicit: PizzaTopping
+                - Name: "PizzaTopping"
+                  Description: "Customize your Pizza"
+                  SlotTypeName: "PizzaTopping"
+                  MultipleValuesSetting:
+                    AllowMultipleValues: true
+                  ValueElicitationSetting:
+                    SlotConstraint: "Required"
+                    PromptSpecification:
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "What do you prefer to add more on topping?"
+                      MaxRetries: 3
+                      AllowInterrupt: false
+                    SlotCaptureSetting:
+                      CodeHook:
+                        EnableCodeHookInvocation: true
+                        InvocationLabel: PizzaToppingValidate
+                        IsActive: true
+                        PostCodeHookSpecification:
+                          SuccessNextStep:
+                            DialogAction:
+                              Type: ElicitSlot
+                              SlotToElicit: QtyPizza
+                - Name: "QtyPizza"
+                  Description: "Number of Pizza"
+                  SlotTypeName: "AMAZON.Number"
+                  ValueElicitationSetting:
+                    SlotConstraint: "Required"
+                    PromptSpecification:
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "How much pizza do you want to order?"
+                      MaxRetries: 3
+                      AllowInterrupt: false
+                    SlotCaptureSetting:
+                      CodeHook:
+                        EnableCodeHookInvocation: true
+                        InvocationLabel: QtyValidation
+                        IsActive: true
+                        PostCodeHookSpecification:
+                          SuccessNextStep:
+                            DialogAction:
+                              Type: ElicitSlot
+                              SlotToElicit: PickUpTime
+                - Name: "PickUpTime"
+                  Description: "Select the pickup Time"
+                  SlotTypeName: "AMAZON.Time"
+                  ValueElicitationSetting:
+                    SlotConstraint: "Required"
+                    PromptSpecification:
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: "When do you want to pickup your order?"
+                      MaxRetries: 3
+                      AllowInterrupt: false
+                    SlotCaptureSetting:
+                      CodeHook:
+                        EnableCodeHookInvocation: true
+                        InvocationLabel: pickupOrderTime
+                        IsActive: true
+                        PostCodeHookSpecification:
+                          SuccessNextStep:
+                            DialogAction:
+                              Type: ConfirmIntent
+              FulfillmentCodeHook:
+                Enabled: true
+                IsActive: true
+              IntentConfirmationSetting:
+                PromptSpecification:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "Are you sure you want to order {QtyPizza} {PizzaSize} {PizzaType} pizza delivered to {City} on {PickUpTime}? Please say yes or no."
+                  MaxRetries: 3
+                  AllowInterrupt: false
+                DeclinationResponse:
+                  MessageGroupsList:
+                    - Message:
+                        PlainTextMessage:
+                          Value: "You Cancelled the process! Please try again."
+                  AllowInterrupt: false
+                CodeHook: 
+                  EnableCodeHookInvocation: true
+                  InvocationLabel: orderConfirm
+                  IsActive: true
+                  PostCodeHookSpecification: 
+                    SuccessResponse:
+                      MessageGroupsList:
+                        - Message:
+                            PlainTextMessage:
+                              Value: Thank you for confirming! and wait for while orderid
+              DialogCodeHook: 
+                Enabled: true
+            - Name: "FallbackIntent"
+              Description: "Default intent when no other intent matches"
+              ParentIntentSignature: "AMAZON.FallbackIntent"
+      TestBotAliasSettings:
+        BotAliasLocaleSettings:
+          - LocaleId: en_US
+            BotAliasLocaleSetting:
+              Enabled: true
+              CodeHookSpecification: 
+                LambdaCodeHook:
+                  CodeHookInterfaceVersion: "1.0"
+                  LambdaArn: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:lexchatbot-dev-orderPizzaBot" 

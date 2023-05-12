@@ -1,0 +1,16 @@
+Resources: 
+  pizzaOrderTable: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: orderId
+          AttributeType: S
+      KeySchema: 
+        - AttributeName: id
+          KeyType: HASH
+        - AttributeName: orderId
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      TableName: pizzaOrder-lexBot

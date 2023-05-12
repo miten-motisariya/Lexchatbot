@@ -1,0 +1,47 @@
+Resources:
+  permissionForFunctionInvoke:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:lexchatbot-dev-orderPizzaBot"
+      Action: lambda:InvokeFunction
+      Principal: 'lexv2.amazonaws.com'
+      SourceAccount: !Sub "${AWS::AccountId}"
+      SourceArn: !Join ['', ['arn:aws:lex:${AWS::Region}:${AWS::AccountId}:bot-alias/', !GetAtt OrderPizzaTemplateBot.Id, '/*']]
+
+  LambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: "Allow"
+          Principal:
+            Service: "lambda.amazonaws.com"
+          Action:
+          - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: "DynamoDBAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "dynamodb:*"
+                Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/pizzaOrder-lexBot'
+        - PolicyName: !Sub "${self:service}-${self:provider.stage}-lambda"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - "logs:CreateLogStream"
+                  - "logs:CreateLogGroup"
+                  - "logs:TagResource"
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lex-chatbot-dev*:*"
+                Effect: "Allow"
+              - Action:
+                  - "logs:PutLogEvents"
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lex-chatbot-dev*:*:*"
+                Effect: "Allow"
